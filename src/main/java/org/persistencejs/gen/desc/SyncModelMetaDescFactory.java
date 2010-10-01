@@ -15,22 +15,10 @@
  */
 package org.persistencejs.gen.desc;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slim3.gen.AnnotationConstants;
 import org.slim3.gen.desc.AttributeMetaDescFactory;
-import org.slim3.gen.desc.ModelMetaClassName;
-import org.slim3.gen.desc.ModelMetaDesc;
 import org.slim3.gen.desc.ModelMetaDescFactory;
-import org.slim3.gen.desc.ModelMetaDescFactory.PolyModelDesc;
-import org.slim3.gen.util.AnnotationMirrorUtil;
-import org.slim3.gen.util.DeclarationUtil;
 
 import com.sun.mirror.apt.AnnotationProcessorEnvironment;
-import com.sun.mirror.declaration.AnnotationMirror;
-import com.sun.mirror.declaration.ClassDeclaration;
-import com.sun.mirror.declaration.Modifier;
 
 /**
  * @author higayasuo

@@ -35,12 +35,21 @@ import org.persistencejs.gen.SyncData;
  * 
  */
 public class SyncModelMetaGenerator extends ModelMetaGenerator {
+	
+    private boolean syncEnabled = false;
 
 	/**
 	 * @param modelMetaDesc
 	 */
 	public SyncModelMetaGenerator(ModelMetaDesc modelMetaDesc) {
 		super(modelMetaDesc);
+		
+        for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
+        	SyncData sync = attr.getData(SyncConstants.Sync);
+			if (sync.isEnabled()) {
+				syncEnabled = true;
+			}
+        }
 	}
 	
     /**
@@ -80,9 +89,11 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         printGetSchemaVersionName(printer);
         printGetClassHierarchyListName(printer);
         
-        printJSONtoModelMethod(printer);
-        printModelToJSONMethod(printer);
-        printGetNameOrIdMethod(printer); 
+        if (syncEnabled) {
+            printJSONtoModelMethod(printer);
+            printModelToJSONMethod(printer);
+            printGetNameOrIdMethod(printer);	
+        } 
         
         printer.unindent();
         printer.print("}");
@@ -101,8 +112,6 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         printer.indent();
         printer.println("assignKeyIfNecessary(model);");
         printer.println("incrementVersion(model);");
-        printer.println("%1$s m = (%1$s) model;", modelMetaDesc
-                .getModelClassName());
         boolean first = true;
         for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
             if (attr.getAttributeListenerClassName() != null
@@ -111,6 +120,8 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
                 if (first) {
                     first = false;
                 }
+                printer.println("%1$s m = (%1$s) model;", modelMetaDesc
+                        .getModelClassName());
                 printer
                     .println(
                         "m.%1$s(slim3_%2$sAttributeListener.prePut(m.%3$s()));",
@@ -119,12 +130,16 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
                         attr.getReadMethodName());
             }
         }
-        printer.println("if (m.isSyncDirty()) {");
-        printer.indent();
-        printer.println("m.setLastChange(new java.util.Date().getTime());");
-        printer.println("m.setSyncDirty(false);");
-        printer.unindent();
-        printer.println("}"); 
+        if (syncEnabled) {
+        	printer.println("%1$s m = (%1$s) model;", modelMetaDesc
+                    .getModelClassName());
+        	printer.println("if (m.isDirty() && !m.isSyncDirty()) {");
+        	printer.indent();
+        	printer.println("m.setLastChange(new java.util.Date().getTime());");
+        	printer.println("m.setDirty(false);");
+        	printer.unindent();
+        	printer.println("}"); 
+        }
         printer.unindent();
         printer.println("}");
         printer.println();
