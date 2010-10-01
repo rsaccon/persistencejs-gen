@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/slim3-gen"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.0-beta.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/persistencejs-sync"/>
+	<classpathentry kind="lib" path="lib/ant-1.7.0.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
