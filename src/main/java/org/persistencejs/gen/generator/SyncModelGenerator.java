@@ -43,6 +43,8 @@ public class SyncModelGenerator implements Generator {
             p.println();
             p.println("import org.slim3.datastore.Attribute;");
             p.println("import org.slim3.datastore.Model;");
+            p.println();
+            p.println("import org.persistencejs.Sync;");
         } else {
             p.println("import org.slim3.datastore.Model;");
             p.println();
@@ -161,7 +163,7 @@ public class SyncModelGenerator implements Generator {
             p.println("     *            the syncDirty");
             p.println("     */");
             p.println("    public void setSyncDirty(boolean syncDirty) {");
-            p.println("    this.syncDirty = syncDirty;");
+            p.println("        this.syncDirty = syncDirty;");
             p.println("    }");
             p.println();
             p.println("    /**");
