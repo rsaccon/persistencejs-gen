@@ -112,16 +112,14 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         printer.indent();
         printer.println("assignKeyIfNecessary(model);");
         printer.println("incrementVersion(model);");
-        boolean first = true;
+        boolean declared = false;
         for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
             if (attr.getAttributeListenerClassName() != null
                 && !attr.getAttributeListenerClassName().equals(
                     AttributeListener)) {
-                if (first) {
-                    first = false;
-                }
                 printer.println("%1$s m = (%1$s) model;", modelMetaDesc
                         .getModelClassName());
+                declared = true;
                 printer
                     .println(
                         "m.%1$s(slim3_%2$sAttributeListener.prePut(m.%3$s()));",
@@ -131,8 +129,10 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
             }
         }
         if (syncEnabled) {
-        	printer.println("%1$s m = (%1$s) model;", modelMetaDesc
-                    .getModelClassName());
+        	if (!declared) {
+        		printer.println("%1$s m = (%1$s) model;", modelMetaDesc
+        				.getModelClassName());
+        	}
         	printer.println("if (m.isDirty() && !m.isSyncDirty()) {");
         	printer.indent();
         	printer.println("m.setLastChange(new java.util.Date().getTime());");
