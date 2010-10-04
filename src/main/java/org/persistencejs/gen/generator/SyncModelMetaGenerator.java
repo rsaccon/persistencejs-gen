@@ -313,11 +313,13 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 							model, attr.getDataType().getClassName(),
 							attr.getName());
 					printer.indent();
-printer.println("// %s", attr.getDataType().getClassName());
-printer.println("// %s", attr.getDataType().getTypeName());
-					printer.println(
-							"if (((%1$s.get%2$s() == null) && (%3$s != null)) || ((%1$s.get%2$s() != null) && !%1$s.get%2$s().equals(%3$s))) {",
-							model, capAttrName, attr.getName());
+					if (attr.getDataType().getClassName().equals("boolean")) {
+						printer.println("if (%1$s.is%2$s() != %3$s) {", model, capAttrName, attr.getName());
+					} else {
+						printer.println(
+								"if (((%1$s.get%2$s() == null) && (%3$s != null)) || ((%1$s.get%2$s() != null) && !%1$s.get%2$s().equals(%3$s))) {",
+								model, capAttrName, attr.getName());
+					}
 					printer.indent();
 					printer.println("%s.setDirty(true);", model);
 					printer.unindent();
