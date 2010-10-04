@@ -36,7 +36,7 @@ import org.persistencejs.gen.SyncData;
  */
 public class SyncModelMetaGenerator extends ModelMetaGenerator {
 	
-    private boolean syncEnabled = false;
+    private boolean hasSyncedAttrs = false;
 
 	/**
 	 * @param modelMetaDesc
@@ -47,7 +47,7 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
         	SyncData sync = attr.getData(SyncConstants.Sync);
 			if (sync.isEnabled()) {
-				syncEnabled = true;
+				hasSyncedAttrs = true;
 			}
         }
 	}
@@ -89,10 +89,11 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         printGetSchemaVersionName(printer);
         printGetClassHierarchyListName(printer);
         
-        if (syncEnabled) {
+        if (hasSyncedAttrs) {
             printJSONtoModelMethod(printer);
             printModelToJSONMethod(printer);
             printGetNameOrIdMethod(printer);	
+            printDirtySetterMethods(printer);	
         } 
         
         printer.unindent();
@@ -128,7 +129,7 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
                         attr.getReadMethodName());
             }
         }
-        if (syncEnabled) {
+        if (hasSyncedAttrs) {
         	if (!declared) {
         		printer.println("%1$s m = (%1$s) model;", modelMetaDesc
         				.getModelClassName());
@@ -287,6 +288,48 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 		printer.unindent();
 		printer.println("}");
 		printer.println();
+	}
+	
+	/**
+	 * Generates setter method
+	 * 
+	 * @param printer
+	 *            the printer
+	 */
+	protected void printDirtySetterMethods(Printer printer) {
+		for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
+			SyncData sync = attr.getData(SyncConstants.Sync);
+			if (sync.isEnabled()) {
+				if (!sync.isTimestamp()
+						&& !attr.getDataType().getClassName()
+								.equals("org.slim3.datastore.ModelRef")) {
+					String capAttrName = java.lang.String.format("%s%s",
+							java.lang.Character.toUpperCase(attr.getName()
+									.charAt(0)), attr.getName().substring(1));
+					String model = modelMetaDesc.getKind().toLowerCase();
+					printer.println(
+							"public void set%1$s(%2$s %3$s, %4$s %5$s) {",
+							capAttrName, modelMetaDesc.getModelClassName(),
+							model, attr.getDataType().getClassName(),
+							attr.getName());
+					printer.indent();
+printer.println("// %s", attr.getDataType().getClassName());
+printer.println("// %s", attr.getDataType().getTypeName());
+					printer.println(
+							"if (((%1$s.get%2$s() == null) && (%3$s != null)) || ((%1$s.get%2$s() != null) && !%1$s.get%2$s().equals(%3$s))) {",
+							model, capAttrName, attr.getName());
+					printer.indent();
+					printer.println("%s.setDirty(true);", model);
+					printer.unindent();
+					printer.println("}");
+					printer.println("%s.set%s(%s);", model, capAttrName,
+							attr.getName());
+					printer.unindent();
+					printer.println("}");
+					printer.println();
+				}
+			}
+		}
 	}
 
 	/**

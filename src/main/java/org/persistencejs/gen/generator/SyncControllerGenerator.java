@@ -77,8 +77,8 @@ public class SyncControllerGenerator implements Generator {
         p.println("response.setContentType(\"application/json\");");
         p.println("response.setCharacterEncoding(\"UTF-8\");");
         p.println();
-        p.println("if (isGet()) {");
-        p.println("    %1$sMeta meta = %sMeta.get();", modelClassName);
+        p.println("%1$sMeta meta = %1$sMeta.get();", modelClassName);
+        p.println("if (isGet()) {");   
         p.println("    Iterator<%s> mIterator =", modelClassName);
         p.println("        Datastore");
         p.println("            .query(meta)");
@@ -89,7 +89,7 @@ public class SyncControllerGenerator implements Generator {
         p.println("    JSONArray arr = new JSONArray();");
         p.println();
         p.println("    while (mIterator.hasNext()) {");
-        p.println("        arr.put(%sMeta.get().modelToJSON(mIterator.next()));", modelClassName);
+        p.println("        arr.put(meta.modelToJSON(mIterator.next()));");
         p.println("    }");
         p.println();
         p.println("    response.getWriter().write(");
@@ -113,7 +113,7 @@ public class SyncControllerGenerator implements Generator {
         p.println("    long timestamp = new Date().getTime();");
         p.println();
         p.println("    for (int i = 0; i < arr.length(); i++) {");
-        p.println("        %1$s m = %sMeta.get().JSONtoModel(", modelClassName);
+        p.println("        %s m = meta.JSONtoModel(", modelClassName);
         p.println("            arr.getJSONObject(i), timestamp);");
         p.println("        m.setSyncDirty(true);");
         p.println("        Datastore.put(m);");
