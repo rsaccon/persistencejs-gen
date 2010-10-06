@@ -1,3 +1,7 @@
 slim3 addon to facilitate [persistencejs](http://github.com/zef/persistencejs)-based HTML5 browser/server data sync.
 
 [Demo](http://github.com/rsaccon/Slim3PersistenceSync)
+
+TODO:
+-----
+* Create a way to automatically test, whether synced attribute setters are calling the meta syncXXX function. 
