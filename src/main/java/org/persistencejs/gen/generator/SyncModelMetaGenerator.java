@@ -224,8 +224,8 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 							attr.getName());
 					printer.indent();
 					printer.println(
-							"model.%1$s(json.get%2$s(\"%3$s\"));",
-							attr.getWriteMethodName(), typeMapper(attr.getDataType().getClassName()), attr.getName());
+							"model.%1$s(%2$s(\"%3$s\"));",
+							attr.getWriteMethodName(), jsonTypeMapper(attr.getDataType().getClassName()), attr.getName());
 					printer.unindent();
 					printer.println("}");
 				}
@@ -308,13 +308,20 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 									.charAt(0)), attr.getName().substring(1));
 					String model = modelMetaDesc.getKind().toLowerCase();
 					printer.println(
-							"public void set%1$s(%2$s %3$s, %4$s %5$s) {",
+							"public void sync%1$s(%2$s %3$s, %4$s %5$s) {",
 							capAttrName, modelMetaDesc.getModelClassName(),
 							model, attr.getDataType().getClassName(),
 							attr.getName());
 					printer.indent();
-					if (attr.getDataType().getClassName().equals("boolean")) {
-						printer.println("if (%1$s.is%2$s() != %3$s) {", model, capAttrName, attr.getName());
+					String type = attr.getDataType().getClassName();
+					if (type.equals("boolean")) {
+						printer.println("if (%1$s.is%2$s() != %3$s) {", model,
+								capAttrName, attr.getName());
+				    } else if (type.equals("short")
+							|| type.equals("int") || type.equals("long")
+							|| type.equals("float") || type.equals("double")) {
+						printer.println("if (%1$s.get%2$s() != %3$s) {", model,
+								capAttrName, attr.getName());
 					} else {
 						printer.println(
 								"if (((%1$s.get%2$s() == null) && (%3$s != null)) || ((%1$s.get%2$s() != null) && !%1$s.get%2$s().equals(%3$s))) {",
@@ -324,8 +331,6 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 					printer.println("%s.setDirty(true);", model);
 					printer.unindent();
 					printer.println("}");
-					printer.println("%s.set%s(%s);", model, capAttrName,
-							attr.getName());
 					printer.unindent();
 					printer.println("}");
 					printer.println();
@@ -350,46 +355,23 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 		printer.println();
 	}		
 	
-	private String typeMapper(String type) {
+	private String jsonTypeMapper(String type) {
 		if (type.equals("java.lang.String")) {
-			return "String";
+			return "json.getString";
 		} else if (type.equals("boolean")) {
-			return "Boolean";
+			return "json.getBoolean";
+		} else if (type.equals("short")) {
+			return "(short) json.getInt";
+		} else if (type.equals("int")) {
+			return "json.getInt";
+		} else if (type.equals("long")) {
+			return "json.getLong";
+		} else if (type.equals("float")) {
+			return "(float) json.getDouble";
+		} else if (type.equals("double")) {
+			return "json.getDouble";
 		} else {
 			return "";		
 	    }
 	}
-	
-
-//	@Override
-//	protected void printAttributeMetaFields(Printer printer) {
-//		AttributeMetaFieldsGenerator generator = new SyncAttributeMetaFieldsGenerator(
-//				printer);
-//		generator.generate();
-//	}
-//	
-//	protected class SyncAttributeMetaFieldsGenerator extends
-//			AttributeMetaFieldsGenerator {
-//
-//		/**
-//		 * @param printer
-//		 */
-//		public SyncAttributeMetaFieldsGenerator(Printer printer) {
-//			super(printer);
-//		}
-//
-//		@Override
-//		public void generate() {
-//			for (AttributeMetaDesc attr : modelMetaDesc
-//					.getAttributeMetaDescList()) {
-//				if (Boolean.TRUE.equals(attr.getData(SyncConstants.Sync))) {
-//					printer.println("// Sync:true");
-//				} else {
-//					printer.println("// Sync:false");
-//				}
-//				DataType dataType = attr.getDataType();
-//				dataType.accept(this, attr);
-//			}
-//		}
-//	}
 }
