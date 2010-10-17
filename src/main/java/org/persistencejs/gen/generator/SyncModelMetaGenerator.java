@@ -118,9 +118,11 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
             if (attr.getAttributeListenerClassName() != null
                 && !attr.getAttributeListenerClassName().equals(
                     AttributeListener)) {
-                printer.println("%1$s m = (%1$s) model;", modelMetaDesc
-                        .getModelClassName());
-                declared = true;
+            	if (!declared) {
+            		printer.println("%1$s m = (%1$s) model;", modelMetaDesc
+                            .getModelClassName());
+                    declared = true;
+            	}
                 printer
                     .println(
                         "m.%1$s(slim3_%2$sAttributeListener.prePut(m.%3$s()));",
