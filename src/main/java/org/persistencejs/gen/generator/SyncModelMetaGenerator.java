@@ -225,9 +225,56 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 					printer.println("if (json.has(\"%1$s\")) {",
 							attr.getName());
 					printer.indent();
-					printer.println(
-							"model.%1$s(%2$s(\"%3$s\"));",
-							attr.getWriteMethodName(), jsonTypeMapper(attr.getDataType().getClassName()), attr.getName());
+					if (attr.getDataType().getClassName().equals("java.lang.String")) {
+						printer.println(
+								"model.%1$s(json.getString(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("java.util.Date")) {
+						printer.println("java.lang.String str = json.getString(\"%1$s\");",
+								attr.getName());
+						printer.println("java.text.DateFormat formatter = new java.text.SimpleDateFormat(\"yyyy-MM-dd'T'HH:mm:ss\");");
+						printer.println("try {");
+						printer.indent();
+						printer.println("model.%1$s(formatter.parse(str));",
+								attr.getWriteMethodName());
+						printer.unindent();
+						printer.println("} catch (java.text.ParseException e) {");
+						printer.indent();
+						printer.println("// ERROR parsing date");
+						printer.unindent();
+						printer.println("};");
+					} else if (attr.getDataType().getClassName().equals("boolean")) {
+						printer.println(
+								"model.%1$s(json.getBoolean(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("short")) {
+						printer.println(
+								"model.%1$s((short) json.getInt(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("int")) {
+						printer.println(
+								"model.%1$s(json.getInt(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("long")) {
+						printer.println(
+								"model.%1$s(json.getLong(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("float")) {
+						printer.println(
+								"model.%1$s((float) json.getDouble(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else if (attr.getDataType().getClassName().equals("double")) {
+						printer.println(
+								"model.%1$s(json.getDouble(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					} else {
+						printer.println(
+								"// ERROR: unhandled Datatype: %s",
+								attr.getDataType().getClassName());
+						printer.println(
+								"// model.%1$s(json.get(\"%2$s\"));",
+								attr.getWriteMethodName(), attr.getName());
+					}					
 					printer.unindent();
 					printer.println("}");
 				}
@@ -356,24 +403,4 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 		printer.println("}");
 		printer.println();
 	}		
-	
-	private String jsonTypeMapper(String type) {
-		if (type.equals("java.lang.String")) {
-			return "json.getString";
-		} else if (type.equals("boolean")) {
-			return "json.getBoolean";
-		} else if (type.equals("short")) {
-			return "(short) json.getInt";
-		} else if (type.equals("int")) {
-			return "json.getInt";
-		} else if (type.equals("long")) {
-			return "json.getLong";
-		} else if (type.equals("float")) {
-			return "(float) json.getDouble";
-		} else if (type.equals("double")) {
-			return "json.getDouble";
-		} else {
-			return "";		
-	    }
-	}
 }
