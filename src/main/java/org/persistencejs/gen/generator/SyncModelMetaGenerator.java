@@ -51,53 +51,21 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
 			}
         }
 	}
-	
-    /**
-     * Prints the class.
+
+	/**
+     * Generates the Sync methods.
      * 
      * @param printer
+     *            the printer
      */
 	@Override
-    protected void printClass(Printer printer) {
-        printer
-            .println(
-                "//@javax.annotation.Generated(value = { \"%s\", \"%s\" }, date = \"%tF %<tT\")",
-                ProductInfo.getName(),
-                ProductInfo.getVersion(),
-                new Date());
-        printer.println("/** */");
-        printer.println("public final class %s extends %s<%s> {", modelMetaDesc
-            .getSimpleName(), ClassConstants.ModelMeta, modelMetaDesc
-            .getModelClassName());
-        printer.println();
-        printer.indent();
-        printAttributeMetaFields(printer);
-        printAttributeListenerFields(printer);
-        printSingletonField(printer);
-        printGetMethod(printer);
-        printConstructor(printer);
-        printer.unindent();
-        printer.println();
-        printer.indent();
-        printEntityToModelMethod(printer);
-        printModelToEntityMethod(printer);
-        printGetKeyMethod(printer);
-        printSetKeyMethod(printer);
-        printGetVersionMethod(printer);
-        printIncrementVersionMethod(printer);
-        printPrePutMethod(printer);
-        printGetSchemaVersionName(printer);
-        printGetClassHierarchyListName(printer);
-        
+    protected void printCustomExtensionMethods(final Printer printer) {
         if (hasSyncedAttrs) {
             printJSONtoModelMethod(printer);
             printModelToJSONMethod(printer);
             printGetNameOrIdMethod(printer);	
             printDirtySetterMethods(printer);	
-        } 
-        
-        printer.unindent();
-        printer.print("}");
+        }		
     }
 	
 	/**
@@ -110,29 +78,28 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
     protected void printPrePutMethod(final Printer printer) {
         printer.println("@Override");
         printer.println("protected void prePut(Object model) {");
-        printer.indent();
-        printer.println("assignKeyIfNecessary(model);");
-        printer.println("incrementVersion(model);");
-        boolean declared = false;
+        boolean first = true;
         for (AttributeMetaDesc attr : modelMetaDesc.getAttributeMetaDescList()) {
             if (attr.getAttributeListenerClassName() != null
                 && !attr.getAttributeListenerClassName().equals(
                     AttributeListener)) {
-            	if (!declared) {
-            		printer.println("%1$s m = (%1$s) model;", modelMetaDesc
-                            .getModelClassName());
-                    declared = true;
-            	}
+                if (first) {
+                    printer.println("    %1$s m = (%1$s) model;", modelMetaDesc
+                        .getModelClassName());
+                    first = false;
+                }
                 printer
                     .println(
-                        "m.%1$s(slim3_%2$sAttributeListener.prePut(m.%3$s()));",
+                        "    m.%1$s(slim3_%2$sAttributeListener.prePut(m.%3$s()));",
                         attr.getWriteMethodName(),
                         attr.getAttributeName(),
                         attr.getReadMethodName());
             }
         }
+        
         if (hasSyncedAttrs) {
-        	if (!declared) {
+        	printer.indent();
+        	if (first) {
         		printer.println("%1$s m = (%1$s) model;", modelMetaDesc
         				.getModelClassName());
         	}
@@ -142,8 +109,9 @@ public class SyncModelMetaGenerator extends ModelMetaGenerator {
         	printer.println("m.setDirty(false);");
         	printer.unindent();
         	printer.println("}"); 
+        	printer.unindent();
         }
-        printer.unindent();
+        
         printer.println("}");
         printer.println();
     }

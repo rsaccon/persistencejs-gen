@@ -55,9 +55,6 @@ public class SyncModelProcessor extends ModelProcessor {
 	@Override
 	protected ModelMetaGenerator createModelMetaGenerator(
 			ModelMetaDesc modelMetaDesc) {
-//		SyncData syncData = new SyncData();
-//		syncData.setEnabled(true);
-//		modelMetaDesc.setData("sync", syncData);
 		return new SyncModelMetaGenerator(modelMetaDesc);
 	}
 	
